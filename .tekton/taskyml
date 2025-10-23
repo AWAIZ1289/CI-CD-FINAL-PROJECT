@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: ci-task
+spec:
+  workspaces:
+    - name: source
+  steps:
+    - name: install-deps
+      image: python:3.9-slim
+      workingDir: /workspace/source
+      script: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: lint
+      image: python:3.9-slim
+      workingDir: /workspace/source
+      script: |
+        flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics || true
+        flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: unit-tests
+      image: python:3.9-slim
+      workingDir: /workspace/source
+      script: |
+        nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
