@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: ci-pipelinerun
+spec:
+  pipelineRef:
+    name: ci-pipeline
+  workspaces:
+    - name: source
+      emptyDir: {}
+  serviceAccountName: default
