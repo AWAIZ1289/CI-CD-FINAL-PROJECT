@@ -10,13 +10,19 @@ spec:
       image: python:3.9-slim
       workingDir: /workspace/source
       script: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
+        set -e
+        # install into workspace-local prefix so no root required
+        python -m pip install --upgrade pip --no-cache-dir --prefix=/workspace/.local || true
+        python -m pip install --no-cache-dir --prefix=/workspace/.local -r requirements.txt
 
     - name: lint
       image: python:3.9-slim
       workingDir: /workspace/source
       script: |
+        set -e
+        # use workspace-local bin first
+        export PATH=/workspace/.local/bin:$PATH
+        # run flake8 (will be available from the workspace-local install)
         flake8 service --count --select=E9,F63,F7,F82 --show-source --statistics || true
         flake8 service --count --max-complexity=10 --max-line-length=127 --statistics
 
@@ -24,4 +30,6 @@ spec:
       image: python:3.9-slim
       workingDir: /workspace/source
       script: |
+        set -e
+        export PATH=/workspace/.local/bin:$PATH
         nosetests -v --with-spec --spec-color --with-coverage --cover-package=app
